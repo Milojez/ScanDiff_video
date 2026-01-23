@@ -11,9 +11,8 @@ contourpy==1.2.1
 cycler==0.12.1
 decorator==5.1.1
 defusedxml==0.7.1
-# detectron2 @ git+https://github.com/facebookresearch/detectron2.git@9604f5995cc628619f0e4fd913453b4d7d61db3f
-# GazeParser==0.11.1
-GazeParser==0.12.3
+detectron2 @ git+https://github.com/facebookresearch/detectron2.git@9604f5995cc628619f0e4fd913453b4d7d61db3f
+GazeParser==0.11.1
 gradio==5.23.3
 gradio_client==1.8.0
 h11==0.14.0
@@ -42,7 +41,7 @@ pycocotools==2.0.8
 pytorch-lightning==2.4.0
 regex==2024.11.6
 requests==2.32.3
-# rich==13.9.4
+rich==13.9.4
 rich-utils==0.4.0
 rootutils==1.0.7
 safetensors==0.4.4

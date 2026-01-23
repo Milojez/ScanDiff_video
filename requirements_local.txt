@@ -1,0 +1,29 @@
+# ---- Core Python / utilities ---- ( i used this one to intially download the most needed dependencies) 
+numpy==1.26.3
+scipy==1.13.1
+pillow==10.2.0
+opencv-python==4.10.0.84
+tqdm==4.66.5
+psutil==6.0.0
+requests==2.32.3
+urllib3==2.2.2
+
+# ---- Configuration / project wiring ----
+hydra-core==1.3.2
+omegaconf==2.3.0
+rootutils==1.0.7
+hydra-colorlog==1.2.0
+colorlog==6.8.2
+rich==13.9.4
+
+# ---- ML (CPU only, stable) ----
+torch==2.3.1
+torchvision==0.18.1
+
+# ---- Common data / analysis (safe) ----
+pandas==2.2.2
+scikit-image==0.25.1
+scikit-learn==1.5.2
+
+# ---- Optional but commonly imported ----
+pyyaml
