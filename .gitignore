@@ -4,3 +4,11 @@ outputs/
 *.pyc
 __pycache__/
 .vscode
+checkpoints
+mit1003
+checkpoints.zip
+mit1003.zip
+demo_outputs
+data
+
+
