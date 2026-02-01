@@ -113,6 +113,31 @@ def main(cfg: DictConfig):
         )  # NB: 1 means that the fixation is valid, 0 otherwise
         scanpath_lengths = torch.cumprod(token_validity_preds, dim=-1).sum(-1)
 
+            # ----- SAVE FIXATIONS IN IMAGE PIXEL COORDINATES -----
+        pred_scanpath_np = pred_scanpath.detach().cpu().numpy()
+        scanpath_lengths_np = scanpath_lengths.detach().cpu().numpy()
+
+        W, H = original_size
+        os.makedirs("./demo_outputs/fixations", exist_ok=True)
+
+        for i in range(num_viewers):
+            L = int(scanpath_lengths_np[i])
+            fixs = pred_scanpath_np[i, :L]  # [L, 3]
+
+            x_px = fixs[:, 0] * W
+            y_px = fixs[:, 1] * H
+            dur_ms = fixs[:, 2] * 1000
+
+            fixation_array = np.stack(
+                [x_px, y_px, dur_ms], axis=1
+            )
+
+            np.save(
+                f"./demo_outputs/fixations/subject_{i+1}_px.npy",
+                fixation_array
+            )
+#-------------------------------------------------------------------------------
+
     save_scanpaths(img, pred_scanpath.detach().cpu().numpy(), scanpath_lengths, original_size)
 
 if __name__ == "__main__":
