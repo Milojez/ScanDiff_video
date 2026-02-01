@@ -1,4 +1,4 @@
-# ---- Core Python / utilities ---- ( i used this one to intially download the most needed dependencies) 
+# ---- Core Python / utilities ---- ( i used this one to intially download the most needed dependencies and start working) 
 numpy==1.26.3
 scipy==1.13.1
 pillow==10.2.0
