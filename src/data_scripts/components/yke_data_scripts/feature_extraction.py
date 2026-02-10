@@ -114,7 +114,7 @@ def dinoV2_image_data(dataset_path, device='cuda:0', overwrite=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Feature Extractor Utils', add_help=False)
-    parser.add_argument('--dataset_path', default= './data/yke_data', type=str)
+    parser.add_argument('--dataset_path', default= './data/yke_data/split_2sec_1500mHz', type=str)
     parser.add_argument('--cuda', default=0, type=int)
     args = parser.parse_args()
     device = torch.device('cuda:{}'.format(args.cuda))
