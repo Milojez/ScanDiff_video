@@ -1,3 +1,8 @@
+#This script is a preprocessing utility that turns your raw images into precomputed feature tensors (.pth files).
+#The script supports multiple image encoders, but you choose exactly one by calling it in the main.by default it is dinoV2_image_data()
+# Resizing here was still kept to 518×518) as for mit1008
+# # to make sure png behaves well the PIL_image = PIL.Image.open(join(src_path, f)).convert("RGB") was exchnaged for PIL_image = PIL.Image.open(join(src_path, f))
+# 
 from torchvision.models.detection import maskrcnn_resnet50_fpn, MaskRCNN_ResNet50_FPN_Weights
 import torchvision.transforms as T
 import torch
@@ -11,6 +16,7 @@ import argparse
 from tqdm import tqdm
 from transformers import AutoProcessor, CLIPVisionModel
 import timm
+from pathlib import Path
 
 class ResNetCOCO(nn.Module):
     def __init__(self, device="cuda:0"):
@@ -44,15 +50,15 @@ def image_data(dataset_path, device='cuda:0', overwrite=False):
     normalize = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
     bbone = ResNetCOCO(device=device).to(device).eval()
-    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.jpeg')]
+    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.png')]
     for f in tqdm(files):
-        if overwrite == False and os.path.exists(join(target_path, f.replace('jpeg', 'pth'))):
+        if overwrite == False and os.path.exists(join(target_path, Path(f).stem + ".pth")):
             continue
-        PIL_image = PIL.Image.open(join(src_path, f))
+        PIL_image = PIL.Image.open(join(src_path, f)).convert("RGB")
         tensor_image = normalize(resize(T.functional.to_tensor(PIL_image))).unsqueeze(0)
 
         features = bbone(tensor_image).squeeze().detach().cpu()
-        torch.save(features, join(target_path, f.replace('jpeg', 'pth')))
+        torch.save(features, join(target_path, Path(f).stem + ".pth"))
         
 def clip_image_data(dataset_path, device='cuda:0', overwrite=False):
     src_path = join(dataset_path, 'images/')
@@ -62,11 +68,11 @@ def clip_image_data(dataset_path, device='cuda:0', overwrite=False):
     model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
     processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
     
-    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.jpeg')]
+    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.png')]
     for f in tqdm(files):
-        if overwrite == False and os.path.exists(join(target_path, f.replace('jpeg', 'pth'))):
+        if overwrite == False and os.path.exists(join(target_path, Path(f).stem + ".pth")):
             continue
-        PIL_image = PIL.Image.open(join(src_path, f))
+        PIL_image = PIL.Image.open(join(src_path, f)).convert("RGB")
         PIL_image = PIL_image.resize((224,224))
         inputs = processor(images=PIL_image, return_tensors='pt')
         outputs = model(**inputs)
@@ -74,7 +80,7 @@ def clip_image_data(dataset_path, device='cuda:0', overwrite=False):
         features = features[:, 1:, :] #remove CLS token
         features = features.squeeze().detach().cpu()
 
-        torch.save(features, join(target_path, f.replace('jpeg', 'pth')))
+        torch.save(features, join(target_path, Path(f).stem + ".pth"))
 
 
 def dinoV2_image_data(dataset_path, device='cuda:0', overwrite=False):
@@ -93,22 +99,22 @@ def dinoV2_image_data(dataset_path, device='cuda:0', overwrite=False):
     data_config = timm.data.resolve_model_data_config(model)
     transforms = timm.data.create_transform(**data_config, is_training=False)
     
-    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.jpeg')]
+    files = [i for i in os.listdir(src_path) if isfile(join(src_path, i)) and i.endswith('.png')]
     for f in tqdm(files):
-        if overwrite == False and os.path.exists(join(target_path, f.replace('jpeg', 'pth'))):
+        if overwrite == False and os.path.exists(join(target_path, Path(f).stem + ".pth")):
             continue
-        PIL_image = PIL.Image.open(join(src_path, f))
+        PIL_image = PIL.Image.open(join(src_path, f)).convert("RGB")
         PIL_image = PIL_image.resize((518,518))
         
         features = model.forward_features(transforms(PIL_image).unsqueeze(0))
         features = features[:, 5:, :]
         features = features.squeeze().detach().cpu()
 
-        torch.save(features, join(target_path, f.replace('jpeg', 'pth')))
+        torch.save(features, join(target_path, Path(f).stem + ".pth"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Feature Extractor Utils', add_help=False)
-    parser.add_argument('--dataset_path', default= './data/mit1003', type=str)
+    parser.add_argument('--dataset_path', default= './data/yke_data', type=str)
     parser.add_argument('--cuda', default=0, type=int)
     args = parser.parse_args()
     device = torch.device('cuda:{}'.format(args.cuda))
