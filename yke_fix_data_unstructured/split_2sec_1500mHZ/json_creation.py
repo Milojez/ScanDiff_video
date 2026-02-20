@@ -24,10 +24,10 @@ TEST_VIDEO = 7
 VAL_RATIO = 0.15
 RANDOM_SEED = 42
 
-DEFAULT_WIDTH = 1904
-DEFAULT_HEIGHT = 988
+DEFAULT_WIDTH = 1904 #the original width of the video is 1904
+DEFAULT_HEIGHT = 988 #the original height of the video is 988
 
-#the images are saved as width 1929 and height 1254 - so what is it?
+
 
 
 # Which timestamp decides the 2s bin

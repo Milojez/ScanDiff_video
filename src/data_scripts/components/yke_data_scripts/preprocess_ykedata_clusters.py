@@ -81,8 +81,8 @@ with open(join(fixation_root, 'ykedata_2s_fixations_validation.json'), 'rb') as 
 target_height = 384
 target_width = 512
 
-#raw_height = 1050
-#raw_width = 1680
+#raw_height = 988
+#raw_width = 1904
 
 data_dict = {}
 for scanpath in fixations:
