@@ -17,7 +17,7 @@ OUT_TRAIN_JSON = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixa
 OUT_VAL_JSON   = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixations_validation.json"
 OUT_TEST_JSON  = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixations_test.json"
 
-BIN_SIZE_S = 2.0
+BIN_SIZE_S = 2.0 #so duaration of the sample
 MAX_TIME_S = 90.0
 
 TEST_VIDEO = 7
@@ -27,7 +27,11 @@ RANDOM_SEED = 42
 DEFAULT_WIDTH = 1904
 DEFAULT_HEIGHT = 988
 
-#the images are saved as width 1929 and height 1254 - so what is it?
+# -------------CONFFIG for saving frame names------------
+FRAME_STARTS = [1, 51, 100]   # corresponds to [0001, 0051, 0100]
+FRAME_STEP = 100             # adds per bin_idx
+FRAME_PAD = 4                # 0001
+FRAME_EXT = ".jpeg"          # or ".png" depending on your files
 
 
 # Which timestamp decides the 2s bin
@@ -41,6 +45,19 @@ NORMALIZE_XY = False
 
 # ==========================
 
+def make_frame_names(video: int, bin_idx: int) -> list:
+    """
+    Returns list of 3 frame filenames like:
+    video_{video}_{window}_frame_0001.jpeg, video_{video}_{window}_frame_0051.jpeg, ...
+    with indices shifted by bin_idx * FRAME_STEP.
+    """
+    offset = bin_idx * FRAME_STEP
+    indices = [s + offset for s in FRAME_STARTS]
+    return [
+        f"video_{video}_frame_{idx:0{FRAME_PAD}d}{FRAME_EXT}"
+        for idx in indices
+    ]
+
 def format_window(bin_idx: int, bin_size_s: float) -> str:
     start = int(round(bin_idx * bin_size_s))
     end = int(round((bin_idx + 1) * bin_size_s))
@@ -48,9 +65,9 @@ def format_window(bin_idx: int, bin_size_s: float) -> str:
 
 
 def make_sample(pp, video,bin_idx, X, Y, T, split):
-    window = format_window(bin_idx, BIN_SIZE_S)
+    frames = make_frame_names(video=video, bin_idx=bin_idx)
     return {
-        "name": f"video_{video}_{window}",      # replace with real filename if needed
+        "name": frames,      # replace with real filename if needed
         "subject": int(pp),
         "X": X,
         "Y": Y,
@@ -182,7 +199,7 @@ def build_scandiff_jsons():
     print(f"Expected samples (pp × video × bins): {expected_samples}")
     print(f"Actual samples generated:             {total_samples}")
     print(f"Skipped zero-fixation samples:        {skipped_zero_fix_samples}")
-    print("Zero-fixation samples are excluded implicitly by groupby.")
+    print("Zero-fixation samples are excluded implicitly by groupby from produced jsons.")
 
     print("-------------------------------------")
     print(f"Average fixations per sample: {avg_fixations:.2f}")
