@@ -1,4 +1,6 @@
 # this script produces the 'clusters_ykedata_512_384.npy' for validation and test data. supposedly used only for evaluation purposes. The resizing param are only used in comparison process supposedly.
+#The script reads eye-tracking scanpaths from the JSON files, then rescales the fixation coordinates from each image’s original size to a fixed resolution (512×384). 
+# After resizing, it clusters the gaze points with MeanShift and converts each scanpath into a sequence of cluster IDs, which is what gets saved in the .npy file.
 #further examination of its use should be considered
 
 import argparse
@@ -81,8 +83,8 @@ with open(join(fixation_root, 'ykedata_2s_fixations_validation.json'), 'rb') as 
 target_height = 384
 target_width = 512
 
-#raw_height = 1050
-#raw_width = 1680
+#raw_height = 988
+#raw_width = 1904
 
 data_dict = {}
 for scanpath in fixations:
