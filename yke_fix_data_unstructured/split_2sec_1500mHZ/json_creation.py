@@ -31,7 +31,7 @@ DEFAULT_HEIGHT = 988
 FRAME_STARTS = [1, 51, 100]   # corresponds to [0001, 0051, 0100]
 FRAME_STEP = 100             # adds per bin_idx
 FRAME_PAD = 4                # 0001
-FRAME_EXT = ".jpeg"          # or ".png" depending on your files
+FRAME_EXT = ".png"          # or ".png" depending on your files
 
 
 # Which timestamp decides the 2s bin
