@@ -14,7 +14,7 @@ import json
 
 
 
-class YkeDataset:
+class YkeDataset_AVE:
     def __init__(self, name: str, root_path: str, task: str, split: str, num_subjects: int, threshold: float = -1., threshold_no_dur: float = -1.,
                 time_in_ms: bool = False, use_abs_coords: bool = True, truncate_seconds: int = 3,
                 task_embeddings_file: str = 'task_embeddings.npy', img_features_dir: str = 'dinov2_base_timm_image_features') -> None:
