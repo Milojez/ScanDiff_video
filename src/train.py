@@ -5,7 +5,7 @@ import hydra
 from typing import Dict, List
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
-from src.data_scripts.components.collator import Collator
+from src.data.components.collator import Collator
 from lightning.pytorch.loggers import Logger
 
 from src.model.components.model import DiT
