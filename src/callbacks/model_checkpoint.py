@@ -47,25 +47,32 @@ class ModelCheckpoint:
             torch.save(ckpt_dict, Path(self.dirpath, 'last' + '.pt'))
     
     def resume_checkpoint(self, model, optimizer, ckpt_path):
-        
         device = get_device()
-        ckpt = torch.load(ckpt_path)
-        model.load_state_dict(ckpt['model'])
+        ckpt = torch.load(ckpt_path, map_location="cpu")
+
+        # ---- model ----
+        # Support both full checkpoints and weights-only checkpoints
+        if isinstance(ckpt, dict) and "model" in ckpt:
+            model.load_state_dict(ckpt["model"])
+        else:
+            # weights-only checkpoint: ckpt itself is a state_dict
+            model.load_state_dict(ckpt)
+
         model.to(device)
-        
+
+        # ---- optimizer (optional) ----
         if optimizer is not None:
-            optimizer.load_state_dict(ckpt['optimizer'])
-            
-            # Move optimizer state to the same device
-            for param in optimizer.state.keys():
-                # 'param' is a model parameter, its state is a dictionary
-                state = optimizer.state[param]
-                for k, v in state.items():
-                    if isinstance(v, torch.Tensor):
-                        state[k] = v.to(device)
-            
-        self.global_step = ckpt['global_step']
-        self.global_epoch = ckpt['global_epoch']
+            if isinstance(ckpt, dict) and "optimizer" in ckpt:
+                optimizer.load_state_dict(ckpt["optimizer"])
+
+                # Move optimizer state to the same device
+                for param in optimizer.state.keys():
+                    state = optimizer.state[param]
+                    for k, v in state.items():
+                        if isinstance(v, torch.Tensor):
+                            state[k] = v.to(device)
+            else:
+                print("Checkpoint has no optimizer state — using fresh/default optimizer.")
     
     def on_epoch_end(self, model, optimizer):
         if self.global_epoch % self.every_n_epochs == 0:
