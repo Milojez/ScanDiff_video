@@ -71,7 +71,7 @@ class Trainer:
                 if validation_metrics is not None:
                     self.log(validation_metrics)
                     
-            if cur_epoch % self.test_every_n_epochs == 0 and self.evaluator is not None:
+            if cur_epoch > 0 and cur_epoch % self.test_every_n_epochs == 0 and self.evaluator is not None:
                 metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch)
                 
                 if metrics is not None:

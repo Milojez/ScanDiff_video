@@ -3,7 +3,7 @@
 python src/train.py -m data/train_datasets=[ykedata] \
     data/val_datasets=[ykedata] \
     data/test_datasets=[ykedata] \
-    trainer=gpu diffusion.num_timesteps=1000 \
+    trainer=gpu diffusion.num_timesteps=10 \
     data.num_workers=8 callbacks=default \
     logger=wandb ~slurm \
     tags=[ykedata_training_2s_1500mHz] \
