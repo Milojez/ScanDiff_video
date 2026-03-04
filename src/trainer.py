@@ -85,6 +85,7 @@ class Trainer:
         print(f"Epoch number {i}")
 
         train_loader = datamodule.train_dataloader()
+        train_losses = [] #adding a list for the losses over batches
         
         for curr_step, batch in enumerate(tqdm(train_loader)):
             
@@ -112,6 +113,8 @@ class Trainer:
                 )
 
             loss = (loss_dict["loss"] * weights).mean()
+
+            train_losses.append(loss.item()) #collecting losses from a batch
             
             #adjust loss for logging
             for key in loss_dict:
@@ -124,6 +127,8 @@ class Trainer:
             if self.model_checkpoint is not None:
                 self.model_checkpoint.set_cur_step(curr_step)
                 self.model_checkpoint.update_global_step()
+
+        self.log({"train/mean_loss": float(np.mean(train_losses))}) #reporting the average loss of a batch within the epoch
                 
     def validation(self, i, model, diffusion, datamodule):
         print(f"Running validation for epoch {i}")
