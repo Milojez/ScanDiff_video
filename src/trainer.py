@@ -69,6 +69,8 @@ class Trainer:
             if cur_epoch % self.validation_every_n_epochs == 0: #validation
                 
                 validation_metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch, is_validation=True)
+                self.validation(cur_epoch, model, diffusion, datamodule) #adding calculation and reporting of validation loss
+                
                 if validation_metrics is not None:
                     self.log(validation_metrics)
                     
