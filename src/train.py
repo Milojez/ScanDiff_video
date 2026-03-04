@@ -94,7 +94,7 @@ def main(cfg: DictConfig):
         log.info("Logging hyperparameters...")
         log_hyperparameters(object_dict)
 
-    if cfg.get("train"):
+    if cfg.get("train"): #here the main training loop is called
         trainer.train(
             model,
             diffusion,
@@ -103,7 +103,7 @@ def main(cfg: DictConfig):
             evaluator=evaluator,
         )
 
-    if cfg.get("test"):
+    if cfg.get("test"): #here the test dataset is used to run the algorithm
         trainer.test(diffusion, ckpt_path=cfg.get("ckpt_path"))
 
 
