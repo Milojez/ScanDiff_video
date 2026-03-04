@@ -59,7 +59,7 @@ class Trainer:
         model.to(self.accelerator)
         model.train()
 
-        for cur_epoch in range(start_epoch, self.max_epochs):
+        for cur_epoch in range(start_epoch, start_epoch + self.max_epochs): #added start_epoch +  because otherwise for just 1 epoch the training would not work
             self._train_one_epoch(cur_epoch, model, diffusion, datamodule)
             
             if self.model_checkpoint is not None:
@@ -67,11 +67,13 @@ class Trainer:
                 self.model_checkpoint.on_epoch_end(model, self.opt)
                 
             if cur_epoch % self.validation_every_n_epochs == 0: #validation
+                
                 validation_metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch, is_validation=True)
                 if validation_metrics is not None:
                     self.log(validation_metrics)
                     
-            if cur_epoch > 0 and cur_epoch % self.test_every_n_epochs == 0 and self.evaluator is not None:
+            if  cur_epoch % self.test_every_n_epochs == 0 and self.evaluator is not None:
+                
                 metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch)
                 
                 if metrics is not None:
