@@ -1,0 +1,13 @@
+ykedata:
+  _target_: src.data.components.yke_data_scripts.ykedata_average.YkeDataset_AVE
+  name: ykedata
+  root_path: ./data/yke_data/split_2sec_1500mHz
+  task: What do you see in the image?
+  split: test #should be [train, valid, test]
+  num_subjects: 83
+  time_in_ms: false
+  use_abs_coords: true
+  threshold: 0.406 # this is the human consistency score. Human evaluation of SS Time
+  threshold_no_dur: 0.408 # this is the human consistency score. Human evaluation of SS Time
+  task_embeddings_file: task_embeddings.npy
+  img_features_dir: dinov2_base_timm_image_features

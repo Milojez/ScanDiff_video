@@ -1,0 +1,11 @@
+ykedata:
+  _target_: src.data.components.yke_data_scripts.ykedata_average.YkeDataset_AVE
+  name: ykedata
+  root_path: ./data/yke_data/split_2sec_1500mHz
+  task: What do you see in the image?
+  split: train #should be [train, valid, test]
+  num_subjects: 83
+  time_in_ms: false
+  use_abs_coords: true
+  task_embeddings_file: task_embeddings.npy
+  img_features_dir: dinov2_base_timm_image_features
