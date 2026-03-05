@@ -8,7 +8,7 @@ python src/train.py -m data/train_datasets=[ykedata] \
     logger=wandb ~slurm \
     tags=[ykedata_training_2s_1500mHz] \
     trainer.validation_every_n_epochs=1 \
-    trainer.test_every_n_epochs=1 \
+    trainer.test_every_n_epochs=9999 \
     trainer.max_epochs=1 \
     train=true test=true \
     evaluation.data_to_extract=['preds','metrics','qualitatives'] \
