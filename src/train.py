@@ -104,8 +104,8 @@ def main(cfg: DictConfig):
         )
 
     if cfg.get("test"): #here the test dataset is used to run the algorithm
-        trainer.test(diffusion, ckpt_path=cfg.get("ckpt_path"))
-
+        # trainer.test(diffusion, ckpt_path=cfg.get("ckpt_path")) #with this you will test the model on the weights before loaded to fine-tuning
+        trainer.test(diffusion, ckpt_path=None) #with this you will test the model (on the test dataset) with the current in-memory model so the one that was just trained or being trained
 
 if __name__ == "__main__":
     main()
