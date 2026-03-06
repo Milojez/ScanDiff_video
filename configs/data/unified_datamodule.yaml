@@ -19,3 +19,4 @@ defaults:
   - train_collators: [default]
   - test_datasets: [osie]
   - test_collators: [default]
+  - val_collators: [default]

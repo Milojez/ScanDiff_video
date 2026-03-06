@@ -69,6 +69,7 @@ class Trainer:
             if cur_epoch % self.validation_every_n_epochs == 0: #validation
                 
                 validation_metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch, is_validation=True)
+                model.train()
                 self.validation(cur_epoch, model, diffusion, datamodule) #adding calculation and reporting of validation loss
                 
                 if validation_metrics is not None:
@@ -77,6 +78,7 @@ class Trainer:
             if  cur_epoch % self.test_every_n_epochs == 0 and self.evaluator is not None:
                 
                 metrics = self.evaluator.test(self.model, diffusion, self.model_checkpoint.global_epoch)
+                model.train()
                 
                 if metrics is not None:
                     self.log(metrics)
@@ -149,9 +151,16 @@ class Trainer:
                 padding_mask = batch['padding_mask'].to(self.accelerator)
                 
                 t = torch.randint(0, diffusion.num_timesteps, (x.shape[0],), device=self.accelerator)
+
+                if 'task_embedding' in batch:
+                    task_embedding = batch['task_embedding'].to(self.accelerator)
+                else:
+                    task_embedding = None
                 
                 model_kwargs = dict(y=batch['img'].to(self.accelerator),
-                                    padding_mask=padding_mask) #specify possible conditions for the diffusion model
+                                    padding_mask=padding_mask,
+                                    task_embedding=task_embedding,) #specify possible conditions for the diffusion model
+                
                 loss_dict = diffusion.training_losses(model, x, t, model_kwargs)
                 loss = loss_dict["loss"].mean()
                 all_val_losses.append(loss.item())
