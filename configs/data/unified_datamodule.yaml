@@ -1,5 +1,5 @@
 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
-batch_size_train: 2
+batch_size_train: 16
 batch_size_validation: 1 #because then replicate the number of generation to simulate the number of observers
 batch_size_test: 1 #because then replicate the number of generation to simulate the number of observers
 num_workers: 8
