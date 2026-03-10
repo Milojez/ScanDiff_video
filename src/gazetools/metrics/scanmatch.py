@@ -1,6 +1,17 @@
 import itertools
 from typing import Optional, Tuple
 from GazeParser.ScanMatch import ScanMatch
+
+# Compatibility for GazeParser naming (lowercase in docs)
+if not hasattr(ScanMatch, "CreateSubMatrix") and hasattr(ScanMatch, "createSubMatrix"):
+    ScanMatch.CreateSubMatrix = ScanMatch.createSubMatrix
+
+if not hasattr(ScanMatch, "GridMask") and hasattr(ScanMatch, "gridMask"):
+    ScanMatch.GridMask = ScanMatch.gridMask
+
+if not hasattr(ScanMatch, "MaskFromArray") and hasattr(ScanMatch, "maskFromArray"):
+    ScanMatch.MaskFromArray = ScanMatch.maskFromArray
+
 import numpy as np
 from typing import Dict, List
 from tqdm import tqdm

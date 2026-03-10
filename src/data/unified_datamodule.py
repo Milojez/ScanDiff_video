@@ -78,7 +78,7 @@ class UnifiedDataModule:
             batch_size=self.batch_size_validation, # equal to train batch size
             pin_memory=self.pin_memory,
             shuffle=False,
-            collate_fn=self.test_collators[0],
+            collate_fn=self.val_collators[0],
             drop_last=self.drop_last,
         )
 

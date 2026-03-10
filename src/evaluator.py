@@ -33,6 +33,9 @@ class Evaluator:
         self.data_to_extract = data_to_extract
         self.device = get_device()
         self.limit_test_batches = limit_test_batches
+    
+    def _collator0(self, is_validation: bool):
+        return self.datamodule.val_collators[0] if is_validation else self.datamodule.test_collators[0]
 
     def test(self, model, diffusion, epoch, is_validation=False):
         preds, target = None, None
@@ -42,7 +45,7 @@ class Evaluator:
             preds, target = self.extract_predictions(model, diffusion, epoch, is_validation)
             
         if 'qualitatives' in self.data_to_extract:
-            self.save_qualitatives(epoch, preds)
+            self.save_qualitatives(epoch, preds, is_validation=is_validation)
             
         if 'metrics' in self.data_to_extract:
             metrics = self.compute_metrics(epoch, preds, target, is_validation)
@@ -151,9 +154,8 @@ class Evaluator:
 
                 # pad scanpaths after the predicted length
                 padded_scanpaths = pred_scanpath
-                padded_scanpaths[mask] = self.datamodule.test_collators[0].PAD[
-                    0
-                ]  # padding value
+                collator0 = self._collator0(is_validation)
+                padded_scanpaths[mask] = collator0.PAD[0] # padding value
 
                 if key not in preds:
                     preds[key] = {}
@@ -244,9 +246,8 @@ class Evaluator:
                 else:
                     suffix = ''
                     
-                img_root_path = Path(
-                    self.datamodule.test_datasets[0].root_path, "images" + suffix
-                )
+                ds0 = self.datamodule.val_datasets[0] if is_validation else self.datamodule.test_datasets[0]    
+                img_root_path = Path(ds0.root_path, "images" + suffix)
                 
                 if isinstance(img_filename, tuple):
                     pil_img = Image.open(Path(img_root_path, task, img_filename[0]))
@@ -256,8 +257,10 @@ class Evaluator:
                 # convert coords from 512,320 to original size
                 original_width, original_height = pil_img.size
 
-                s_length = torch.ones(s.shape[0])
-                s_length[s[:, 0] == self.datamodule.test_collators[0].PAD[0]]  = 0
+                collator0 = self._collator0(is_validation)
+
+                s_length = torch.ones(s.shape[0], device=s.device)
+                s_length[s[:, 0] == collator0.PAD[0]] = 0
                 s_length = int(s_length.sum().item())
 
                 s = s.cpu().numpy()
