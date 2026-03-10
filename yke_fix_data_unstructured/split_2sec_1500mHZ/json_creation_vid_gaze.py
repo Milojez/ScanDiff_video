@@ -1,6 +1,8 @@
 #This script should produce the JSON samples structured in the same way as the ones used by mit1003. Adapt especially BIN_SIZE_S to you desired sample length
 #this will use all fixations that fall within that bin into one sample
 #what is important this script already expects the fixation being splitted when necessary
+
+#basically this code is an update dversion of json_creation.py where here  is also entry delta_t_start added for each sample
 import json
 import pandas as pd
 import numpy as np
@@ -11,14 +13,14 @@ from pathlib import Path
 # ==========================
 
 CSV_FILES = [
-    "./yke_fix_data_unstructured/split_2sec_1500mHZ/GT_all_fixation_noDial7_noPPs_split_2s.csv",         
+    "./yke_fix_data_unstructured/split_2sec_1500mHZ/GT_all_fixation_noDial7_noPPs_split_2s.csv",
 ]
 
-OUT_TRAIN_JSON = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixations_train.json"
-OUT_VAL_JSON   = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixations_validation.json"
-OUT_TEST_JSON  = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fixations_test.json"
+OUT_TRAIN_JSON = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fix_vid_gaze_train.json"
+OUT_VAL_JSON   = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fix_vid_gaze_validation.json"
+OUT_TEST_JSON  = "./yke_fix_data_unstructured/split_2sec_1500mHZ/ykedata_2s_fix_vid_gaze_test.json"
 
-BIN_SIZE_S = 2.0 #so duaration of the sample
+BIN_SIZE_S = 2.0   # duration of one sample (already inspired by how the fixations were splitted at boundaries( 2s, 3s etc.) in the loaded file)
 MAX_TIME_S = 90.0
 
 TEST_VIDEO = 7
@@ -28,36 +30,32 @@ RANDOM_SEED = 42
 DEFAULT_WIDTH = 1904
 DEFAULT_HEIGHT = 988
 
-# -------------CONFFIG for saving frame names------------
-FRAME_STARTS = [1, 51, 100]   # corresponds to [0001, 0051, 0100]
-FRAME_STEP = 100             # adds per bin_idx
-FRAME_PAD = 4                # 0001
-FRAME_EXT = ".png"          # or ".png" depending on your files
+# ------------- CONFIG for saving frame names ------------
+FRAME_STARTS = [1, 51, 100]
+FRAME_STEP = 100
+FRAME_PAD = 4
+FRAME_EXT = ".png"
 
-
-# Which timestamp decides the 2s bin
+# Which timestamp decides the bin
 TIME_FOR_BINNING = "t_mid_s"   # or "t_begin_s", "t_end_s"
 
-# Durations in ms like your example; set False for seconds
+# Save durations in ms like in your example
 DURATION_IN_MS = True
 
-# If needed it is possible to normalize coordinates to [0,1]
+# Normalize coordinates to [0,1] if needed
 NORMALIZE_XY = False
 
 # ==========================
 
 def make_frame_names(video: int, bin_idx: int) -> list:
-    """
-    Returns list of 3 frame filenames like:
-    video_{video}_{window}_frame_0001.jpeg, video_{video}_{window}_frame_0051.jpeg, ...
-    with indices shifted by bin_idx * FRAME_STEP.
-    """
-    offset = bin_idx * FRAME_STEP
-    indices = [s + offset for s in FRAME_STARTS]
+    video = int(video)
+    offset = int(bin_idx * FRAME_STEP)
+    indices = [int(s + offset) for s in FRAME_STARTS]
     return [
         f"video_{video}_frame_{idx:0{FRAME_PAD}d}{FRAME_EXT}"
         for idx in indices
     ]
+
 
 def format_window(bin_idx: int, bin_size_s: float) -> str:
     start = int(round(bin_idx * bin_size_s))
@@ -65,16 +63,17 @@ def format_window(bin_idx: int, bin_size_s: float) -> str:
     return f"{start:02d}-{end:02d}"
 
 
-def make_sample(pp, video,bin_idx, X, Y, T, split):
+def make_sample(pp, video, bin_idx, X, Y, delta_t_start, duration, split):
     frames = make_frame_names(video=video, bin_idx=bin_idx)
     return {
-        "name": frames,      # replace with real filename if needed
+        "name": frames,
         "subject": int(pp),
         "X": X,
         "Y": Y,
-        "T": T,
+        "delta_t_start": delta_t_start,
+        "T": duration,
         "length": len(X),
-        "split": split,                 # kept for compatibility; also separated into files
+        "split": split,
         "height": int(DEFAULT_HEIGHT),
         "width": int(DEFAULT_WIDTH),
     }
@@ -91,12 +90,14 @@ def build_scandiff_jsons():
     df["duration_s"] = df["duration_s"].astype(float)
     df["x_fix"] = df["x_fix"].astype(float)
     df["y_fix"] = df["y_fix"].astype(float)
+    df["t_begin_s"] = df["t_begin_s"].astype(float)
+    df["t_end_s"] = df["t_end_s"].astype(float)
     df[TIME_FOR_BINNING] = df[TIME_FOR_BINNING].astype(float)
 
     # Keep valid time range
     df = df[(df[TIME_FOR_BINNING] >= 0.0) & (df[TIME_FOR_BINNING] < MAX_TIME_S)].copy()
 
-    # 2-second bin index
+    # Bin index
     df["bin_idx"] = (df[TIME_FOR_BINNING] // BIN_SIZE_S).astype(int)
 
     # --------------------------------------------------
@@ -137,9 +138,12 @@ def build_scandiff_jsons():
     total_fixations = 0
     fixations_per_sample = []
 
-    grouped = df.groupby(["pp", "video", "bin_idx"], sort=True) #S amples with zero fixations are never created,They are implicitly excluded
+    grouped = df.groupby(["pp", "video", "bin_idx"], sort=True)
 
     for (pp, video, bin_idx), g in grouped:
+        # Make sure fixations inside one sample are in temporal order
+        g = g.sort_values("t_begin_s").reset_index(drop=True)
+
         if NORMALIZE_XY:
             X = (g["x_fix"] / float(DEFAULT_WIDTH)).tolist()
             Y = (g["y_fix"] / float(DEFAULT_HEIGHT)).tolist()
@@ -147,10 +151,24 @@ def build_scandiff_jsons():
             X = g["x_fix"].tolist()
             Y = g["y_fix"].tolist()
 
+        # duration
         if DURATION_IN_MS:
-            T = (g["duration_s"] * 1000.0).tolist()
+            duration = [round(v, 2) for v in (g["duration_s"] * 1000.0).tolist()]
         else:
-            T = g["duration_s"].tolist()
+            duration = [round(v, 2) for v in g["duration_s"].tolist()]
+
+        # delta_t_start:
+        # first fixation relative to sample start
+        # next fixations relative to previous fixation end
+        sample_start = bin_idx * BIN_SIZE_S
+        delta_t_start = []
+
+        prev_end = sample_start
+        for _, row in g.iterrows():
+            gap = row["t_begin_s"] - prev_end
+            value = gap * 1000.0 if DURATION_IN_MS else gap
+            delta_t_start.append(round(value, 2))
+            prev_end = row["t_end_s"]
 
         # stats
         total_samples += 1
@@ -161,19 +179,19 @@ def build_scandiff_jsons():
         fixations_per_sample.append(num_fix)
 
         if video == TEST_VIDEO:
-            sample = make_sample(pp, video, bin_idx, X, Y, T, "test")
+            sample = make_sample(pp, video, bin_idx, X, Y, delta_t_start, duration, "test")
             test_samples.append(sample)
         else:
             split = "validation" if (pp, video, bin_idx) in val_keys else "train"
-            sample = make_sample(pp, video, bin_idx, X, Y, T, split)
+            sample = make_sample(pp, video, bin_idx, X, Y, delta_t_start, duration, split)
             if split == "validation":
                 val_samples.append(sample)
             else:
                 train_samples.append(sample)
 
-    # Stable ordering (nice for reproducibility)
+    # Stable ordering
     def sort_key(s):
-        return (s["subject"], s["name"])  # you can also add bin info if you store it
+        return (s["subject"], s["name"])
 
     train_samples.sort(key=sort_key)
     val_samples.sort(key=sort_key)
@@ -210,7 +228,7 @@ def build_scandiff_jsons():
     print(f"Train samples:      {len(train_samples)} -> {OUT_TRAIN_JSON}")
     print(f"Validation samples: {len(val_samples)} -> {OUT_VAL_JSON}")
     print(f"Test samples:       {len(test_samples)} -> {OUT_TEST_JSON}")
-    print((f"Total assigned samples: {len(test_samples)+len(train_samples)+len(val_samples)}"))
+    print(f"Total assigned samples: {len(test_samples) + len(train_samples) + len(val_samples)}")
     print("=====================================")
 
 
