@@ -1,0 +1,3 @@
+ykedata_2s_fixations_train.json are the first proper datasets with ready samples that were created with json_creation.py
+ykedata_2s_fix_vid_gaze_train.json are the ykedata_2s_fixations_train.json but extended by additioanl dimension for fixation  namely: delta_t_start . these were created with json_creation_vid_gaze.py
+ykedata_2s_fix_vid_gaze_train_signal.json are the extended version of ykedata_2s_fix_vid_gaze_train.json which now include the signal data for each frame assigned to a sample. These jsons are created by extend_with_dial_signals.py which uses csv with dial singal data produced by dial_signals_to_csv.py which used directly json files produced by matlab (movie_01_dial_signals.json)
