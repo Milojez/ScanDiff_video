@@ -30,6 +30,7 @@ IN_JSONS = [
 CSV_DIR = BASE_DIR / "dial_signals" / "movie_signal_csv"
 
 OUT_SUFFIX = "_signal"  # appended before .json on output filenames
+ROUND_DECIMALS = 4      # decimal places for angle and speed values; set to None to disable
 
 # ==========================
 
@@ -104,12 +105,15 @@ def extend_samples(samples: list, dial_cache: dict) -> list:
         # Determine dial IDs from first frame entry
         signal_ids = sorted(signals[frame_numbers[0]].keys())
 
+        def _round(v):
+            return round(v, ROUND_DECIMALS) if ROUND_DECIMALS is not None else v
+
         dials_out = [
             {
                 "signal_id": sid,
                 "dial_position": signals[frame_numbers[0]][sid]["dial_position"],
-                "angle": [signals[fn][sid]["angle"] for fn in frame_numbers],
-                "speed": [signals[fn][sid]["speed"] for fn in frame_numbers],
+                "angle": [_round(signals[fn][sid]["angle"]) for fn in frame_numbers],
+                "speed": [_round(signals[fn][sid]["speed"]) for fn in frame_numbers],
             }
             for sid in signal_ids
         ]
